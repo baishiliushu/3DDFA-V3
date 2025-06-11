@@ -7,6 +7,7 @@ from model.recon import face_model
 
 import onnxruntime
 
+
 #python demo.py --inputpath /work/project/Gerry/data/face_data/face/box_0604/sum_data/ 
 #--savepath /work/project/Gerry/data/face_data/face/box_0604/sum_data_result --device cuda 
 #--iscrop 1 --detector retinaface --ldm68 1 --useTex 1 --extractTex 1 --backbone mbnetv3
@@ -54,6 +55,9 @@ def parser_set(fixed_args=ARGS_SET):
                         help='backbone for reconstruction, support for resnet50 and mbnetv3')
     return parser.parse_args()
 
+# device_type = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# torchsummary.summary(model, (3,224,224))
+
 # 加载PyTorch模型
 print("{}\n{}".format(type(parser_set()), parser_set()))
 
@@ -89,12 +93,13 @@ torch.onnx.export(
     )
 print("Convert to {} done.".format(onnx_full_name))
 
+
 # 3. 推理前转换：CUDA Tensor -> CPU NumPy
 onnx_inputs = {"input": dummy_input.cpu().numpy()} 
 session = onnxruntime.InferenceSession(onnx_full_name, None)
 outputs = session.run(None, onnx_inputs)
 
-print("Run output shape : {} v.s. (1, 257)".format(outputs[0].shape))
+print("Run {} output shape : {} v.s. (1, 257)".format(onnx_full_name, outputs[0].shape))
 
 #providers=['CPUExecutionProvider']/providers=['CUDAExecutionProvider'] ; onnxruntime-gpu/onnxruntime
 """
